@@ -3,19 +3,52 @@
  * OBJ02-J. Preserve dependencies in subclasses when changing superclasses
  * Failure to maintain all relevant invariants can cause security vulnerabilities.
  ******************************************************************************/
-class CalendarSubclass extends Calendar {
+// The CalendarImplementation object is a concrete implementation
+// of the abstract Calendar class
+// Class ForwardingCalendar
+public class ForwardingCalendar {
+  private final CalendarImplementation c;
+ 
+  public ForwardingCalendar(CalendarImplementation c) {
+    this.c = c;
+  }
+ 
+  CalendarImplementation getCalendarImplementation() {
+    return c;
+  }
+ 
+  public boolean after(Object when) {
+    return c.after(when);
+  }
+ 
+  public int compareTo(Calendar anotherCalendar) {
+    // CalendarImplementation.compareTo() will be called
+    return c.compareTo(anotherCalendar);
+  }
+}
+ 
+class CompositeCalendar extends ForwardingCalendar {
+  public CompositeCalendar(CalendarImplementation ci) {
+    super(ci);
+  }
+ 
   @Override public boolean after(Object when) {
-    // Correctly calls Calendar.compareTo()
+    // This will call the overridden version, i.e.
+    // CompositeClass.compareTo();
     if (when instanceof Calendar &&
-        super.compareTo((Calendar) when) == 0) {
+        super.compareTo((Calendar)when) == 0) {
+      // Return true if it is the first day of week
       return true;
     }
+    // No longer compares with first day of week;
+    // uses default comparison with epoch
     return super.after(when);
   }
  
   @Override public int compareTo(Calendar anotherCalendar) {
-    return compareDays(this.getFirstDayOfWeek(),
-                       anotherCalendar.getFirstDayOfWeek());
+    return compareDays(
+             super.getCalendarImplementation().getFirstDayOfWeek(),
+             anotherCalendar.getFirstDayOfWeek());
   }
  
   private int compareDays(int currentFirstDayOfWeek,
@@ -25,15 +58,14 @@ class CalendarSubclass extends Calendar {
   }
  
   public static void main(String[] args) {
-    CalendarSubclass cs1 = new CalendarSubclass();
-    cs1.setTime(new Date());
+    CalendarImplementation ci1 = new CalendarImplementation();
+    ci1.setTime(new Date());
     // Date of last Sunday (before now)
-    cs1.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-    // Wed Dec 31 19:00:00 EST 1969
-    CalendarSubclass cs2 = new CalendarSubclass();
-    // Expected to print true
-    System.out.println(cs1.after(cs2));
-  }
+    ci1.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
  
-  // Implementation of other Calendar abstract methods
+    CalendarImplementation ci2 = new CalendarImplementation();
+    CompositeCalendar c = new CompositeCalendar(ci1);
+    // Expected to print true
+    System.out.println(c.after(ci2));
+  }
 }
