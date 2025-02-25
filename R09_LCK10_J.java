@@ -4,9 +4,11 @@
  * The double-checked locking idiom is a software design pattern used to reduce the overhead of acquiring a lock by first testing the locking criterion 
  * without actually acquiring the lock. 
  ******************************************************************************/
-// Double-checked locking idiom
+// Works with acquire/release semantics for volatile
+// Broken under JDK 1.4 and earlier
 final class Foo {
-  private Helper helper = null;
+  private volatile Helper helper = null;
+ 
   public Helper getHelper() {
     if (helper == null) {
       synchronized (this) {
@@ -17,6 +19,4 @@ final class Foo {
     }
     return helper;
   }
- 
-  // Other methods and members...
 }
