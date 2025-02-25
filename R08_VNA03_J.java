@@ -5,6 +5,7 @@
  * operations is guaranteed to be collectively atomic without additional locking. 
  ******************************************************************************/
 final class Adder {
+  // ...
   private final AtomicReference<BigInteger> first;
   private final AtomicReference<BigInteger> second;
  
@@ -13,12 +14,14 @@ final class Adder {
     second = new AtomicReference<BigInteger>(s);
   }
  
-  public void update(BigInteger f, BigInteger s) { // Unsafe
+ 
+ 
+  public synchronized void update(BigInteger f, BigInteger s){
     first.set(f);
     second.set(s);
   }
  
-  public BigInteger add() { // Unsafe
+  public synchronized BigInteger add() {
     return first.get().add(second.get());
   }
 }
